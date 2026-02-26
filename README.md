@@ -9,9 +9,11 @@
 
 ### 方式 A：让 OpenClaw 自己修（最省事）
 
-**把这句话发给你的 OpenClaw：**
+**把这句话复制发给你的 OpenClaw：**
 
-> 请阅读 https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/OPENCLAW.md 并按指示执行飞书缓存修复
+```
+请阅读 https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/OPENCLAW.md 并按指示执行飞书缓存修复
+```
 
 然后等着它告诉你修好了就行。
 
