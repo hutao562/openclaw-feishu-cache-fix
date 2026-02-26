@@ -58,100 +58,6 @@ $PLUGIN_PATHS = @(
     "$env:USERPROFILE\AppData\Roaming\npm\node_modules\@openclaw\feishu"
 )
 
-# 缓存修复代码
-$CACHE_PROBE_CODE = @'
-import type { FeishuProbeResult } from "./types.js";
-import { createFeishuClient, type FeishuClientCredentials } from "./client.js";
-
-const OK_TTL_MS = 6 * 60 * 60 * 1000;        // 6小时
-const FAIL_TTL_MS = 10 * 60 * 1000;          // 10分钟
-const QUOTA_FAIL_TTL_MS = 24 * 60 * 60 * 1000; // 24小时（本月额度用尽）
-
-type CacheEntry = { data: FeishuProbeResult; expiresAt: number };
-
-const cache = new Map<string, CacheEntry>();
-const inFlight = new Map<string, Promise<FeishuProbeResult>>();
-
-// 可选：复用 client，减少 tenant_access_token/internal 被频繁触发的概率
-const clientCache = new Map<string, unknown>();
-
-function keyOf(creds: FeishuClientCredentials) {
-  const domain = (creds as any).domain ?? "";
-  return `${domain}::${creds.appId}::${creds.appSecret}`;
-}
-
-function getClient(creds: FeishuClientCredentials) {
-  const k = keyOf(creds);
-  const hit = clientCache.get(k);
-  if (hit) return hit;
-  const c = createFeishuClient(creds);
-  clientCache.set(k, c);
-  return c;
-}
-
-export async function probeFeishu(creds?: FeishuClientCredentials): Promise<FeishuProbeResult> {
-  if (!creds?.appId || !creds?.appSecret) {
-    return { ok: false, error: "missing credentials (appId, appSecret)" };
-  }
-
-  const k = keyOf(creds);
-  const now = Date.now();
-
-  const cached = cache.get(k);
-  if (cached && cached.expiresAt > now) return cached.data;
-
-  const running = inFlight.get(k);
-  if (running) return await running;
-
-  const p = (async () => {
-    try {
-      const client = getClient(creds);
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const response = await (client as any).request({
-        method: "GET",
-        url: "/open-apis/bot/v3/info",
-        data: {},
-      });
-
-      if (response.code !== 0) {
-        const ttl = response.code === 99991403 ? QUOTA_FAIL_TTL_MS : FAIL_TTL_MS;
-        const fail: FeishuProbeResult = {
-          ok: false,
-          appId: creds.appId,
-          error: `API error: ${response.msg || `code ${response.code}`}`,
-        };
-        cache.set(k, { data: fail, expiresAt: now + ttl });
-        return fail;
-      }
-
-      const bot = response.bot || response.data?.bot;
-      const ok: FeishuProbeResult = {
-        ok: true,
-        appId: creds.appId,
-        botName: bot?.bot_name,
-        botOpenId: bot?.open_id,
-      };
-      cache.set(k, { data: ok, expiresAt: now + OK_TTL_MS });
-      return ok;
-    } catch (err) {
-      const fail: FeishuProbeResult = {
-        ok: false,
-        appId: creds.appId,
-        error: err instanceof Error ? err.message : String(err),
-      };
-      cache.set(k, { data: fail, expiresAt: now + FAIL_TTL_MS });
-      return fail;
-    } finally {
-      inFlight.delete(k);
-    }
-  })();
-
-  inFlight.set(k, p);
-  return await p;
-}
-'@
-
 function Show-Header {
     Write-Host ""
     Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
@@ -250,7 +156,96 @@ function Apply-Fix {
     }
     
     try {
-        $CACHE_PROBE_CODE | Out-File $probeFile -Encoding UTF8 -NoNewline
+        # 使用 here-string 直接写入代码，避免转义问题
+        $probeCode = @'
+import type { FeishuProbeResult } from "./types.js";
+import { createFeishuClient, type FeishuClientCredentials } from "./client.js";
+
+const OK_TTL_MS = 6 * 60 * 60 * 1000;
+const FAIL_TTL_MS = 10 * 60 * 1000;
+const QUOTA_FAIL_TTL_MS = 24 * 60 * 60 * 1000;
+
+type CacheEntry = { data: FeishuProbeResult; expiresAt: number };
+
+const cache = new Map<string, CacheEntry>();
+const inFlight = new Map<string, Promise<FeishuProbeResult>>();
+const clientCache = new Map<string, unknown>();
+
+function keyOf(creds: FeishuClientCredentials) {
+  const domain = (creds as any).domain ?? "";
+  return `${domain}::${creds.appId}::${creds.appSecret}`;
+}
+
+function getClient(creds: FeishuClientCredentials) {
+  const k = keyOf(creds);
+  const hit = clientCache.get(k);
+  if (hit) return hit;
+  const c = createFeishuClient(creds);
+  clientCache.set(k, c);
+  return c;
+}
+
+export async function probeFeishu(creds?: FeishuClientCredentials): Promise<FeishuProbeResult> {
+  if (!creds?.appId || !creds?.appSecret) {
+    return { ok: false, error: "missing credentials (appId, appSecret)" };
+  }
+
+  const k = keyOf(creds);
+  const now = Date.now();
+
+  const cached = cache.get(k);
+  if (cached && cached.expiresAt > now) return cached.data;
+
+  const running = inFlight.get(k);
+  if (running) return await running;
+
+  const p = (async () => {
+    try {
+      const client = getClient(creds);
+      const response = await (client as any).request({
+        method: "GET",
+        url: "/open-apis/bot/v3/info",
+        data: {},
+      });
+
+      if (response.code !== 0) {
+        const ttl = response.code === 99991403 ? QUOTA_FAIL_TTL_MS : FAIL_TTL_MS;
+        const fail: FeishuProbeResult = {
+          ok: false,
+          appId: creds.appId,
+          error: "API error: " + (response.msg || "code " + response.code),
+        };
+        cache.set(k, { data: fail, expiresAt: now + ttl });
+        return fail;
+      }
+
+      const bot = response.bot || response.data?.bot;
+      const ok: FeishuProbeResult = {
+        ok: true,
+        appId: creds.appId,
+        botName: bot?.bot_name,
+        botOpenId: bot?.open_id,
+      };
+      cache.set(k, { data: ok, expiresAt: now + OK_TTL_MS });
+      return ok;
+    } catch (err) {
+      const fail: FeishuProbeResult = {
+        ok: false,
+        appId: creds.appId,
+        error: err instanceof Error ? err.message : String(err),
+      };
+      cache.set(k, { data: fail, expiresAt: now + FAIL_TTL_MS });
+      return fail;
+    } finally {
+      inFlight.delete(k);
+    }
+  })();
+
+  inFlight.set(k, p);
+  return await p;
+}
+'@
+        $probeCode | Out-File $probeFile -Encoding UTF8 -NoNewline
         Write-Success "缓存代码已应用"
         return $true
     } catch {
