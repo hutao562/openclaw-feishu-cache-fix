@@ -74,6 +74,41 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/hutao562/openclaw-feis
 
 ---
 
+## ✅ 验证修复成功
+
+运行完修复命令后，可以通过以下方式确认是否生效：
+
+### 方法1：看飞书后台（最直观）
+
+登录 [飞书开放平台](https://open.feishu.cn/app/) → 你的应用 → **日志检索**
+
+| 时间 | 修复前 | 修复后 |
+|------|--------|--------|
+| 第1分钟 | 有 `bot/v3/info` 记录 | 有记录（最后一次）|
+| 第2-60分钟 | 每分钟都有记录 | **没有记录** ✅ |
+| 第6小时后 | 已有 360 条记录 | 才有下一条记录 ✅ |
+
+**说明**：修复成功后，API 调用从每分钟1次变成每6小时1次。
+
+### 方法2：脚本自检（最简单）
+
+```bash
+bash fix-feishu-cache.sh --status
+```
+
+看到 `已应用缓存修复 ✅` 就对了。
+
+### 方法3：本地看日志（适合技术党）
+
+```bash
+# 持续监控 OpenClaw 日志
+tail -f /tmp/openclaw/openclaw-$(date +%Y-%m-%d).log | grep "bot/v3/info"
+```
+
+观察几分钟，如果**没有新的调用记录**就是成功了。按 `Ctrl+C` 退出。
+
+---
+
 ## 🤔 这是什么？能解决什么问题？
 
 ### 问题现象
@@ -210,38 +245,6 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 1. 检查飞书后台是否显示 API 调用减少了
 2. 用 `--status` 查看修复状态
 3. 重启 OpenClaw 网关：`openclaw gateway restart`
-
----
-
-## ✅ 验证修复成功
-
-### 方法1：看飞书后台
-
-登录 [飞书开放平台](https://open.feishu.cn/app/) → 你的应用 → 日志检索
-
-- **修复前**：每分钟都有 `bot/v3/info` 调用记录
-- **修复后**：每隔几小时才有一条
-
-### 方法2：本地看日志
-
-```bash
-# 持续监控 OpenClaw 日志
-tail -f /tmp/openclaw/openclaw-$(date +%Y-%m-%d).log | grep "bot/v3/info"
-```
-
-按 `Ctrl+C` 退出。
-
-### 方法3：脚本自检
-
-```bash
-bash fix-feishu-cache.sh --status
-```
-
-显示 `已应用缓存修复 ✅` 就是成功了。
-
----
-
-## 📁 项目文件说明
 
 ```
 openclaw-feishu-cache-fix/
