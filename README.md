@@ -3,45 +3,38 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![OpenClaw](https://img.shields.io/badge/OpenClaw-2026.2.17+-blue.svg)](https://github.com/openclaw/openclaw)
 
-一个自动修复 OpenClaw 飞书(Feishu/Lark)插件高频 API 调用问题的工具。
+> 一键修复 OpenClaw 飞书插件 API 配额超限问题，让免费版用户也能愉快使用。
 
-## 🎯 问题背景
+## 🚀 快速开始（30秒搞定）
 
-OpenClaw 的飞书通道默认每 60 秒执行一次健康检查，每次检查都会调用 `/open-apis/bot/v3/info` API。这导致：
+**选择你的系统，复制对应命令运行：**
 
-- **免费版用户**：每月 10,000 次配额在几天内耗尽
-- **错误代码**：`99991403 This month's API call quota has been exceeded`
-- **日志表现**：飞书后台显示每分钟一次的固定周期调用
-
-## ✅ 解决方案
-
-本工具通过以下策略减少 API 调用：
-
-| 场景 | 缓存时间 | 说明 |
-|------|---------|------|
-| 成功响应 | 6 小时 | bot 信息变化不频繁 |
-| 普通失败 | 10 分钟 | 防止瞬时抖动 |
-| 配额超限 (99991403) | **24 小时** | 避免失败风暴 |
-| 并发请求 | 自动去重 | 同一时间只发 1 个请求 |
-
-**效果对比：**
-- 修复前：~1,440 次/天
-- 修复后：~4 次/天（减少 **99.7%**）
-
-## 🔧 使用方法
-
-### ⚠️ 重要提示
-
-**通过 `curl | bash` 管道运行时，无法显示交互式菜单。** 请使用以下两种方式之一：
-
-#### 方式 1：先下载再运行（推荐，支持交互菜单）
+### Linux / macOS / WSL
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh -o /tmp/fix-feishu-cache.sh
-bash /tmp/fix-feishu-cache.sh
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh -o /tmp/fix.sh && bash /tmp/fix.sh
 ```
 
-运行后显示交互式菜单：
+运行后会显示菜单，输入 `1` 回车即可自动修复。
+
+### Windows (PowerShell)
+
+```powershell
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.ps1" -OutFile "$env:TEMP\fix.ps1"; & "$env:TEMP\fix.ps1"
+```
+
+**第一次运行 PowerShell 脚本？** 先执行：
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+```
+
+---
+
+## 📖 详细使用指南
+
+### 交互式菜单（推荐新手）
+
+下载脚本后运行，会显示友好的菜单界面：
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -50,231 +43,232 @@ bash /tmp/fix-feishu-cache.sh
 
 请选择操作:
 
-  [1] 🔧 应用缓存修复
-  [2] 🔄 恢复原始版本
-  [3] 📊 查看当前状态
-  [4] 🗑️  卸载本工具
+  [1] 🔧 应用缓存修复    ← 选这个，一键搞定
+  [2] 🔄 恢复原始版本    ← 后悔药，恢复备份
+  [3] 📊 查看当前状态    ← 看看修好了没
+  [4] 🗑️  卸载本工具     ← 清理所有文件
   [5] ❌ 退出
 ```
 
-#### 方式 2：管道 + 参数（无需交互）
+### 命令行参数（适合自动化）
+
+懒得看菜单？直接用参数：
 
 ```bash
-# 查看状态
+# Linux/macOS - 直接修复（无需交互）
 curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --status
 
-# 应用缓存修复（自动检测路径）
-curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --path /usr/lib/node_modules/openclaw/extensions/feishu
-
-# 恢复原始版本
-curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --restore
-
-# 卸载工具
-curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --uninstall
+# Windows PowerShell - 直接修复
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.ps1" -OutFile "fix.ps1"
+.\fix.ps1 -Status
 ```
 
-### 命令行参数说明
+**常用参数：**
 
-```bash
-# 查看状态
-curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --status
-
-# 直接修复（跳过菜单）
-curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --path /custom/path
-
-# 恢复原始版本
-curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --restore
-
-# 卸载工具
-curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --uninstall
-```
-
-**可用参数：**
-
-| 参数 | 说明 |
-|------|------|
-| `--status` | 查看当前修复状态 |
-| `--restore` | 恢复原始版本 |
-| `--uninstall` | 卸载本工具并清理安装文件 |
-| `--path <路径>` | 指定自定义插件路径 |
-| `--help` | 显示帮助信息 |
-
-### Windows 用户使用说明
-
-Windows 用户有以下两种方式：
-
-#### 方式 A：WSL / Git Bash（推荐）
-
-如果在 WSL 或 Git Bash 环境中，直接使用 bash 脚本：
-
-```bash
-# 下载脚本
-curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh -o fix-feishu-cache.sh
-
-# 运行
-bash fix-feishu-cache.sh
-```
-
-#### 方式 B：PowerShell（原生 Windows）
-
-使用 PowerShell 脚本：
-
-```powershell
-# 下载脚本
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.ps1" -OutFile "fix-feishu-cache.ps1"
-
-# 运行（自动检测并修复）
-.\fix-feishu-cache.ps1
-
-# 查看状态
-.\fix-feishu-cache.ps1 -Status
-
-# 恢复原始版本
-.\fix-feishu-cache.ps1 -Restore
-
-# 指定自定义路径
-.\fix-feishu-cache.ps1 -Path "C:\Program Files\nodejs\node_modules\openclaw\extensions\feishu"
-```
-
-**注意**：PowerShell 执行策略可能需要调整：
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-## 🏗️ 项目结构
-
-```
-openclaw-feishu-cache-fix/
-├── README.md                 # 项目说明文档
-├── LICENSE                   # MIT 许可证
-├── CHANGELOG.md              # 更新日志
-├── CONTRIBUTING.md           # 贡献指南
-├── install.sh                # 快速安装脚本
-├── fix-feishu-cache.sh       # 主修复脚本（Bash）
-├── fix-feishu-cache.ps1      # Windows PowerShell 脚本
-├── src/
-│   └── probe.ts.template     # 缓存修复模板代码
-└── tests/
-    └── test-install.sh       # 安装测试脚本
-```
-
-## 🖥️ 系统要求
-
-- **OpenClaw**: 2026.2.17 或更高版本
-- **操作系统**: 
-  - Linux / macOS: Bash
-  - Windows: WSL, Git Bash, 或 PowerShell 5.1+
-- **依赖**: curl, bash 或 PowerShell
-
-## 🔍 技术细节
-
-### 检测逻辑
-
-脚本会按以下优先级自动检测插件位置：
-
-1. **内置插件**（推荐）：`~/.npm-global/lib/node_modules/openclaw/extensions/feishu/`
-2. **独立安装**：`~/.npm-global/lib/node_modules/@openclaw/feishu/`
-3. **本地开发**：`~/openclaw/extensions/feishu/`
-
-### 缓存实现
-
-核心修改在 `probeFeishu()` 函数：
-
-```typescript
-// 内存缓存（Map）存储 probe 结果
-const cache = new Map<string, CacheEntry>();
-
-// 并发去重（in-flight 请求合并）
-const inFlight = new Map<string, Promise<FeishuProbeResult>>();
-
-// 缓存 key 包含 domain + appId + appSecret
-function keyOf(creds: FeishuClientCredentials) {
-  const domain = (creds as any).domain ?? "";
-  return `${domain}::${creds.appId}::${creds.appSecret}`;
-}
-```
-
-## ⚠️ 注意事项
-
-1. **修改前会自动备份**：原始文件保存在 `probe.ts.backup-YYYYMMDD-HHMMSS`
-2. **需要重启网关**：修改后脚本会自动重启 OpenClaw 网关
-3. **多账户支持**：缓存 key 包含 appId，支持多账户配置
-4. **配额超限处理**：错误码 99991403 会缓存 24 小时，避免持续重试
-
-## 🐛 故障排除
-
-### 问题 1：找不到插件位置
-
-**症状**：`❌ 未找到飞书插件安装位置`
-
-**解决**：
-```bash
-# 手动指定插件路径
-./fix-feishu-cache.sh --path /your/custom/path/to/feishu
-```
-
-### 问题 2：权限不足
-
-**症状**：`Permission denied`
-
-**解决**：
-```bash
-chmod +x fix-feishu-cache.sh
-sudo ./fix-feishu-cache.sh
-```
-
-### 问题 3：网关重启失败
-
-**症状**：`systemctl: command not found`
-
-**解决**：手动重启
-```bash
-killall openclaw-gateway
-openclaw gateway start
-```
-
-## 📊 验证修复效果
-
-修复后，可以通过以下方式验证：
-
-### 1. 查看飞书后台日志
-
-登录 [飞书开放平台](https://open.feishu.cn/app/) → 你的应用 → 日志检索
-
-- **修复前**：每分钟一次 `/open-apis/bot/v3/info` 调用
-- **修复后**：每 6 小时一次调用（或更少）
-
-### 2. 本地日志检查
-
-```bash
-tail -f /tmp/openclaw/openclaw-$(date +%Y-%m-%d).log | grep "bot/v3/info"
-```
-
-### 3. 状态检查
-
-```bash
-./fix-feishu-cache.sh --status
-```
-
-## 🤝 贡献指南
-
-欢迎提交 Issue 和 PR！请阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 了解详情。
-
-## 📜 许可证
-
-本项目采用 [MIT 许可证](LICENSE)。
-
-## 🙏 致谢
-
-- [OpenClaw](https://github.com/openclaw/openclaw) 社区
-- [元亨大吉](https://mp.weixin.qq.com/s/KSC-GaRLvF7BTbv3lOlPkg) 的技术分享
-- 所有贡献者
-
-## 📮 联系与支持
-
-- **GitHub Issues**: [提交问题](https://github.com/hutao562/openclaw-feishu-cache-fix/issues)
-- **讨论区**: [GitHub Discussions](https://github.com/hutao562/openclaw-feishu-cache-fix/discussions)
+| 参数 | 作用 | 示例 |
+|------|------|------|
+| `--status` / `-Status` | 查看当前状态 | 检查是否已经修复 |
+| `--restore` / `-Restore` | 恢复原始版本 | 从备份还原 |
+| `--uninstall` | 卸载本工具 | 删除所有相关文件 |
+| `--path <路径>` / `-Path` | 指定插件位置 | 自动检测失败时使用 |
 
 ---
 
-**免责声明**：本工具为非官方社区项目，使用风险自负。建议在修改前备份重要数据。
+## 🤔 这是什么？能解决什么问题？
+
+### 问题现象
+
+如果你在使用 OpenClaw 的飞书通道，可能会遇到：
+
+- **飞书机器人突然不回复了**
+- **日志里出现**：`99991403 This month's API call quota has been exceeded`
+- **飞书后台显示**：每分钟都在调用 `/open-apis/bot/v3/info`
+
+**原因**：OpenClaw 默认每 60 秒检查一次飞书连接状态，每次检查都调用 API。免费版每月只有 10,000 次配额，一周左右就用完了。
+
+### 解决方案
+
+本工具给 OpenClaw 的飞书插件加个"缓存层"：
+
+| 情况 | 原来 | 修复后 | 说明 |
+|------|------|--------|------|
+| 正常时 | 每分钟查 1 次 | 6 小时查 1 次 | 省 99.3% |
+| 出错了 | 每分钟重试 | 10 分钟重试 | 防止刷屏 |
+| 配额用完 | 一直重试 | 24 小时后再试 | 避免雪上加霜 |
+| 同时多个请求 | 每个都发 | 合并成 1 个 | 去重优化 |
+
+**效果**：API 调用从 **~1,440 次/天** 降到 **~4 次/天**，免费版绰绰有余。
+
+---
+
+## 🖥️ 系统要求
+
+| 系统 | 要求 | 备注 |
+|------|------|------|
+| **Linux** | bash + curl | 几乎所有发行版都自带 |
+| **macOS** | bash + curl | 系统自带 |
+| **Windows** | PowerShell 5.1+ 或 WSL | Win10/11 都支持 |
+| **OpenClaw** | 2026.2.17+ | 飞书插件需已安装 |
+
+**不懂命令行？** Windows 用户推荐用 [Git Bash](https://git-scm.com/download/win)，界面和 Linux 一样。
+
+---
+
+## 🛠️ 工作原理（可选阅读）
+
+### 1. 自动找插件位置
+
+脚本会智能猜测你的 OpenClaw 飞书插件装在哪：
+
+```
+1. ~/.npm-global/lib/node_modules/openclaw/extensions/feishu  ← 最常见
+2. /usr/lib/node_modules/openclaw/extensions/feishu           ← 系统安装
+3. ~/openclaw/extensions/feishu                               ← 本地开发
+```
+
+找不到？用 `--path` 手动指定：
+```bash
+bash fix-feishu-cache.sh --path /你的/自定义/路径
+```
+
+### 2. 自动备份
+
+修改前，脚本会把原始文件备份为 `probe.ts.backup-20260226-143022`（带时间戳）。
+
+**误操作了？** 运行 `--restore` 一键还原。
+
+### 3. 修改代码
+
+把飞书插件的核心文件 `probe.ts` 替换为带缓存的版本，核心逻辑：
+
+```typescript
+// 加个内存缓存
+const cache = new Map<string, CacheEntry>();
+
+// 检查缓存，有就直接返回
+if (cached && cached.expiresAt > now) return cached.data;
+
+// 同时多个请求？合并成一个
+if (running) return await running;
+```
+
+### 4. 自动重启
+
+修改完成后，脚本会自动重启 OpenClaw 网关，立即生效。
+
+---
+
+## 🐛 常见问题
+
+### Q1: 运行命令没反应？
+
+**可能是网络问题**，手动下载再运行：
+
+```bash
+# 用浏览器访问下面链接，下载文件
+# https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh
+
+# 然后本地运行
+bash fix-feishu-cache.sh
+```
+
+### Q2: 提示 "未找到飞书插件"？
+
+**说明你装了 OpenClaw 但没装飞书插件**，先安装：
+```bash
+openclaw install feishu
+```
+
+或者你的插件装在奇怪的位置，手动指定：
+```bash
+bash fix-feishu-cache.sh --path /usr/lib/node_modules/openclaw/extensions/feishu
+```
+
+### Q3: 提示 "Permission denied"？
+
+Linux/macOS 需要执行权限：
+```bash
+chmod +x fix-feishu-cache.sh
+./fix-feishu-cache.sh
+```
+
+或者直接用 `bash` 运行（不需要 chmod）：
+```bash
+bash fix-feishu-cache.sh
+```
+
+### Q4: Windows 提示 "无法加载脚本"？
+
+PowerShell 默认禁止运行脚本，需要改执行策略：
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+```
+
+### Q5: 修复后飞书还是不工作？
+
+可能是**配额已经用完**了，等下个月自动恢复，或者：
+1. 检查飞书后台是否显示 API 调用减少了
+2. 用 `--status` 查看修复状态
+3. 重启 OpenClaw 网关：`openclaw gateway restart`
+
+---
+
+## ✅ 验证修复成功
+
+### 方法1：看飞书后台
+
+登录 [飞书开放平台](https://open.feishu.cn/app/) → 你的应用 → 日志检索
+
+- **修复前**：每分钟都有 `bot/v3/info` 调用记录
+- **修复后**：每隔几小时才有一条
+
+### 方法2：本地看日志
+
+```bash
+# 持续监控 OpenClaw 日志
+tail -f /tmp/openclaw/openclaw-$(date +%Y-%m-%d).log | grep "bot/v3/info"
+```
+
+按 `Ctrl+C` 退出。
+
+### 方法3：脚本自检
+
+```bash
+bash fix-feishu-cache.sh --status
+```
+
+显示 `已应用缓存修复 ✅` 就是成功了。
+
+---
+
+## 📁 项目文件说明
+
+```
+openclaw-feishu-cache-fix/
+├── README.md                 # 本文件
+├── LICENSE                   # MIT 开源协议
+├── fix-feishu-cache.sh       # Linux/macOS 脚本
+├── fix-feishu-cache.ps1      # Windows 脚本
+└── src/
+    └── probe.ts.template     # 缓存代码模板（供参考）
+```
+
+**没有 install.sh？** 对，本工具设计理念就是**用完即走**，不需要安装，运行完脚本可以删掉。
+
+---
+
+## 🤝 参与贡献
+
+发现 bug 或有新想法？欢迎：
+- [提交 Issue](https://github.com/hutao562/openclaw-feishu-cache-fix/issues)
+- [发起讨论](https://github.com/hutao562/openclaw-feishu-cache-fix/discussions)
+
+---
+
+## 📜 许可证
+
+MIT 协议，随便用，出问题别找我 😄
+
+---
+
+**最后**：如果这工具帮到了你，点个 ⭐ Star 鼓励一下作者吧！
