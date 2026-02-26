@@ -6,7 +6,7 @@
 
 ### 报告问题
 
-如果您发现了 bug 或有功能建议，请通过 [GitHub Issues](https://github.com/yourusername/openclaw-feishu-cache-fix/issues) 提交。
+如果您发现了 bug 或有功能建议，请通过 [GitHub Issues](https://github.com/hutao562/openclaw-feishu-cache-fix/issues) 提交。
 
 提交问题时，请包含：
 
@@ -20,7 +20,7 @@
 
 1. **Fork 仓库**
    ```bash
-   git clone https://github.com/yourusername/openclaw-feishu-cache-fix.git
+   git clone https://github.com/hutao562/openclaw-feishu-cache-fix.git
    cd openclaw-feishu-cache-fix
    ```
 
@@ -112,7 +112,7 @@ docs: 更新安装说明
 
 ## 社区
 
-- 加入讨论：[GitHub Discussions](https://github.com/yourusername/openclaw-feishu-cache-fix/discussions)
+- 加入讨论：[GitHub Discussions](https://github.com/hutao562/openclaw-feishu-cache-fix/discussions)
 - 关注更新：Watch 本仓库
 
 ## 行为准则

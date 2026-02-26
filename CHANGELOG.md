@@ -44,5 +44,5 @@
 - Backup and restore functionality
 - Complete documentation
 
-[未发布]: https://github.com/yourusername/openclaw-feishu-cache-fix/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/yourusername/openclaw-feishu-cache-fix/releases/tag/v1.0.0
+[未发布]: https://github.com/hutao562/openclaw-feishu-cache-fix/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/hutao562/openclaw-feishu-cache-fix/releases/tag/v1.0.0

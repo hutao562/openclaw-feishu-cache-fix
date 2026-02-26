@@ -59,14 +59,14 @@ openclaw-feishu-cache-fix/
 ### 1. 快速安装（推荐）
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yourusername/openclaw-feishu-cache-fix/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/install.sh | bash
 ```
 
 ### 2. 手动使用
 
 ```bash
 # 下载项目
-git clone https://github.com/yourusername/openclaw-feishu-cache-fix.git
+git clone https://github.com/hutao562/openclaw-feishu-cache-fix.git
 cd openclaw-feishu-cache-fix
 
 # 运行修复

@@ -3,12 +3,12 @@
 # OpenClaw 飞书插件 API 缓存修复工具 - 快速安装脚本
 #
 # 使用方法:
-#   curl -fsSL https://raw.githubusercontent.com/yourusername/openclaw-feishu-cache-fix/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/install.sh | bash
 #
 
 set -e
 
-REPO_URL="https://github.com/yourusername/openclaw-feishu-cache-fix"
+REPO_URL="https://github.com/hutao562/openclaw-feishu-cache-fix"
 INSTALL_DIR="$HOME/.openclaw-feishu-cache-fix"
 BIN_DIR="$HOME/.local/bin"
 

@@ -33,14 +33,14 @@ OpenClaw 的飞书通道默认每 60 秒执行一次健康检查，每次检查�
 ### 方法 1：快速安装（推荐）
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yourusername/openclaw-feishu-cache-fix/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/install.sh | bash
 ```
 
 ### 方法 2：手动安装
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/yourusername/openclaw-feishu-cache-fix.git
+git clone https://github.com/hutao562/openclaw-feishu-cache-fix.git
 cd openclaw-feishu-cache-fix
 
 # 2. 运行修复脚本
@@ -214,8 +214,8 @@ tail -f /tmp/openclaw/openclaw-$(date +%Y-%m-%d).log | grep "bot/v3/info"
 
 ## 📮 联系与支持
 
-- **GitHub Issues**: [提交问题](https://github.com/yourusername/openclaw-feishu-cache-fix/issues)
-- **讨论区**: [GitHub Discussions](https://github.com/yourusername/openclaw-feishu-cache-fix/discussions)
+- **GitHub Issues**: [提交问题](https://github.com/hutao562/openclaw-feishu-cache-fix/issues)
+- **讨论区**: [GitHub Discussions](https://github.com/hutao562/openclaw-feishu-cache-fix/discussions)
 
 ---
 
