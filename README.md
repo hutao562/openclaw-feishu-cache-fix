@@ -258,6 +258,19 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 2. 用 `--status` 查看修复状态
 3. 重启 OpenClaw 网关：`openclaw gateway restart`
 
+### Q6: 升级 OpenClaw 后需要重新修复吗？
+
+**需要。** 升级 OpenClaw 会重置插件文件，缓存修复会被覆盖。
+
+**升级后重新修复：**
+```bash
+# 检查状态（应该显示"未应用缓存修复"）
+bash fix-feishu-cache.sh --status
+
+# 重新执行修复
+bash fix-feishu-cache.sh
+```
+
 ```
 openclaw-feishu-cache-fix/
 ├── README.md                 # 本文件
