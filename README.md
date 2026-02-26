@@ -95,9 +95,51 @@ curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/
 |------|------|
 | `--status` | 查看当前修复状态 |
 | `--restore` | 恢复原始版本 |
-| `--uninstall` | 卸载工具并清理安装文件 |
+| `--uninstall` | 卸载本工具并清理安装文件 |
 | `--path <路径>` | 指定自定义插件路径 |
 | `--help` | 显示帮助信息 |
+
+### Windows 用户使用说明
+
+Windows 用户有以下两种方式：
+
+#### 方式 A：WSL / Git Bash（推荐）
+
+如果在 WSL 或 Git Bash 环境中，直接使用 bash 脚本：
+
+```bash
+# 下载脚本
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh -o fix-feishu-cache.sh
+
+# 运行
+bash fix-feishu-cache.sh
+```
+
+#### 方式 B：PowerShell（原生 Windows）
+
+使用 PowerShell 脚本：
+
+```powershell
+# 下载脚本
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.ps1" -OutFile "fix-feishu-cache.ps1"
+
+# 运行（自动检测并修复）
+.\fix-feishu-cache.ps1
+
+# 查看状态
+.\fix-feishu-cache.ps1 -Status
+
+# 恢复原始版本
+.\fix-feishu-cache.ps1 -Restore
+
+# 指定自定义路径
+.\fix-feishu-cache.ps1 -Path "C:\Program Files\nodejs\node_modules\openclaw\extensions\feishu"
+```
+
+**注意**：PowerShell 执行策略可能需要调整：
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
 
 ## 🏗️ 项目结构
 
@@ -119,8 +161,10 @@ openclaw-feishu-cache-fix/
 ## 🖥️ 系统要求
 
 - **OpenClaw**: 2026.2.17 或更高版本
-- **操作系统**: Linux, macOS, Windows (WSL)
-- **依赖**: bash, curl/wget, systemctl (Linux)
+- **操作系统**: 
+  - Linux / macOS: Bash
+  - Windows: WSL, Git Bash, 或 PowerShell 5.1+
+- **依赖**: curl, bash 或 PowerShell
 
 ## 🔍 技术细节
 
