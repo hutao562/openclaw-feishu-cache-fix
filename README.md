@@ -5,19 +5,29 @@
 
 > 一键修复 OpenClaw 飞书插件 API 配额超限问题，让免费版用户也能愉快使用。
 
-## 🚀 快速开始（30秒搞定）
+## 🚀 快速开始（选一种方式）
 
-**选择你的系统，复制对应命令运行：**
+### 方式 A：让 OpenClaw 自己修（最省事）
 
-### Linux / macOS / WSL
+**把这句话发给你的 OpenClaw：**
+
+> 请阅读 https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/OPENCLAW.md 并按指示执行飞书缓存修复
+
+然后等着它告诉你修好了就行。
+
+### 方式 B：手动运行（30秒搞定）
+
+**选择你的系统，复制对应命令：**
+
+#### Linux / macOS / WSL
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh -o /tmp/fix.sh && bash /tmp/fix.sh
 ```
 
-运行后会显示菜单，输入 `1` 回车即可自动修复。
+运行后显示菜单，输入 `1` 回车即可。
 
-### Windows (PowerShell)
+#### Windows (PowerShell)
 
 ```powershell
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.ps1" -OutFile "$env:TEMP\fix.ps1"; & "$env:TEMP\fix.ps1"
