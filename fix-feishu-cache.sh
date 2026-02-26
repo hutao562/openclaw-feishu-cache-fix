@@ -418,11 +418,31 @@ check_status() {
     echo ""
 }
 
+# 显示交互式菜单
+show_menu() {
+    print_header
+    echo ""
+    echo "请选择操作:"
+    echo ""
+    echo "  [1] 🔧 应用缓存修复"
+    echo "  [2] 🔄 恢复原始版本"
+    echo "  [3] 📊 查看当前状态"
+    echo "  [4] ❌ 退出"
+    echo ""
+}
+
+# 读取用户选择
+read_choice() {
+    local choice
+    read -p "请输入选项 (1-4): " choice
+    echo "$choice"
+}
+
 # 主函数
 main() {
     local custom_path=""
     local dry_run=false
-    local action="fix"  # fix, restore, status
+    local action=""  # 空表示交互模式
     
     # 解析参数
     while [[ $# -gt 0 ]]; do
@@ -459,7 +479,32 @@ main() {
         esac
     done
     
-    print_header
+    # 如果没有指定动作，进入交互模式
+    if [[ -z "$action" ]]; then
+        show_menu
+        local choice
+        choice=$(read_choice)
+        
+        case $choice in
+            1)
+                action="fix"
+                ;;
+            2)
+                action="restore"
+                ;;
+            3)
+                action="status"
+                ;;
+            4|*)
+                echo ""
+                echo "👋 再见!"
+                exit 0
+                ;;
+        esac
+    else
+        # 非交互模式，先打印 header
+        print_header
+    fi
     
     # 状态检查
     if [[ "$action" == "status" ]]; then

@@ -28,62 +28,56 @@ OpenClaw 的飞书通道默认每 60 秒执行一次健康检查，每次检查�
 - 修复前：~1,440 次/天
 - 修复后：~4 次/天（减少 **99.7%**）
 
-## 🔧 安装方法
+## 🔧 使用方法
 
-### 方法 1：快速安装（推荐）
+### 快速运行（推荐）
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/install.sh | bash
-```
-
-### 方法 2：手动安装
+无需安装，直接运行：
 
 ```bash
-# 1. 克隆仓库
-git clone https://github.com/hutao562/openclaw-feishu-cache-fix.git
-cd openclaw-feishu-cache-fix
-
-# 2. 运行修复脚本
-chmod +x fix-feishu-cache.sh
-./fix-feishu-cache.sh
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash
 ```
 
-## 📋 使用说明
+运行后会显示交互式菜单：
 
-### 自动检测与修复
+```
+╔══════════════════════════════════════════════════════════════╗
+║     OpenClaw 飞书插件 API 缓存修复工具 v1.0.0                ║
+╚══════════════════════════════════════════════════════════════╝
 
-脚本会自动检测飞书插件的安装位置（独立安装或内置安装）：
+请选择操作:
+
+  [1] 🔧 应用缓存修复
+  [2] 🔄 恢复原始版本
+  [3] 📊 查看当前状态
+  [4] ❌ 退出
+
+请输入选项 (1-4):
+```
+
+### 命令行参数（非交互模式）
+
+如果需要脚本化调用，可以使用参数：
 
 ```bash
-./fix-feishu-cache.sh
+# 查看状态
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --status
+
+# 直接修复（跳过菜单）
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --path /custom/path
+
+# 恢复原始版本
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --restore
 ```
 
-输出示例：
-```
-🔍 检查 OpenClaw 飞书插件安装位置...
-✅ 发现内置插件: ~/.npm-global/lib/node_modules/openclaw/extensions/feishu
-📦 备份原始文件: probe.ts.backup-20260226-184800
-📝 应用缓存修复...
-✅ 修复完成！
-🔄 重启 OpenClaw 网关...
-✅ 网关已重启
+**可用参数：**
 
-🎉 修复成功！API 调用将从 ~1440 次/天 降至 ~4 次/天
-```
-
-### 恢复原始版本
-
-如果需要恢复原始版本：
-
-```bash
-./fix-feishu-cache.sh --restore
-```
-
-### 查看当前状态
-
-```bash
-./fix-feishu-cache.sh --status
-```
+| 参数 | 说明 |
+|------|------|
+| `--status` | 查看当前修复状态 |
+| `--restore` | 恢复原始版本 |
+| `--path <路径>` | 指定自定义插件路径 |
+| `--help` | 显示帮助信息 |
 
 ## 🏗️ 项目结构
 
