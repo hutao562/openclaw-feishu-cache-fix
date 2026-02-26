@@ -1,0 +1,183 @@
+/**
+ * OpenClaw Feishu Plugin - Cached Probe Implementation
+ * 
+ * 此模板用于修复飞书插件高频 API 调用问题
+ * 主要特性：
+ * - 成功响应缓存 6 小时
+ * - 普通失败缓存 10 分钟
+ * - 配额超限缓存 24 小时（错误码 99991403）
+ * - 并发请求自动去重
+ * 
+ * 使用方法：
+ * 1. 备份原始 probe.ts
+ * 2. 用此文件内容替换原始 probe.ts
+ * 3. 重启 OpenClaw 网关
+ * 
+ * 预期效果：API 调用从 ~1440 次/天 降至 ~4 次/天
+ */
+
+import type { FeishuProbeResult } from "./types.js";
+import { createFeishuClient, type FeishuClientCredentials } from "./client.js";
+
+// ==================== 缓存配置 ====================
+const OK_TTL_MS = 6 * 60 * 60 * 1000;        // 6小时
+const FAIL_TTL_MS = 10 * 60 * 1000;          // 10分钟
+const QUOTA_FAIL_TTL_MS = 24 * 60 * 60 * 1000; // 24小时（本月额度用尽）
+
+// ==================== 缓存存储 ====================
+type CacheEntry = { 
+  data: FeishuProbeResult; 
+  expiresAt: number;
+};
+
+const cache = new Map<string, CacheEntry>();
+const inFlight = new Map<string, Promise<FeishuProbeResult>>();
+
+// 可选：复用 client，减少 tenant_access_token/internal 被频繁触发的概率
+const clientCache = new Map<string, unknown>();
+
+// ==================== 辅助函数 ====================
+
+/**
+ * 生成缓存 key
+ * 使用 domain + appId + appSecret 确保唯一性
+ */
+function keyOf(creds: FeishuClientCredentials): string {
+  const domain = (creds as any).domain ?? "";
+  return `${domain}::${creds.appId}::${creds.appSecret}`;
+}
+
+/**
+ * 获取或创建 Feishu Client（单例模式）
+ */
+function getClient(creds: FeishuClientCredentials): unknown {
+  const k = keyOf(creds);
+  const hit = clientCache.get(k);
+  if (hit) return hit;
+  
+  const c = createFeishuClient(creds);
+  clientCache.set(k, c);
+  return c;
+}
+
+// ==================== 主要函数 ====================
+
+/**
+ * 探测 Feishu 账户状态（带缓存版本）
+ * 
+ * @param creds - Feishu 账户凭证
+ * @returns 探测结果
+ */
+export async function probeFeishu(
+  creds?: FeishuClientCredentials
+): Promise<FeishuProbeResult> {
+  
+  // 参数校验
+  if (!creds?.appId || !creds?.appSecret) {
+    return { 
+      ok: false, 
+      error: "missing credentials (appId, appSecret)" 
+    };
+  }
+
+  const k = keyOf(creds);
+  const now = Date.now();
+
+  // 1. 检查缓存
+  const cached = cache.get(k);
+  if (cached && cached.expiresAt > now) {
+    return cached.data;
+  }
+
+  // 2. 检查是否有正在进行的请求（并发去重）
+  const running = inFlight.get(k);
+  if (running) {
+    return await running;
+  }
+
+  // 3. 执行实际请求
+  const p = (async () => {
+    try {
+      const client = getClient(creds);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const response = await (client as any).request({
+        method: "GET",
+        url: "/open-apis/bot/v3/info",
+        data: {},
+      });
+
+      // 处理 API 错误
+      if (response.code !== 0) {
+        // 配额超限特殊处理：缓存 24 小时
+        const ttl = response.code === 99991403 ? QUOTA_FAIL_TTL_MS : FAIL_TTL_MS;
+        
+        const fail: FeishuProbeResult = {
+          ok: false,
+          appId: creds.appId,
+          error: `API error: ${response.msg || `code ${response.code}`}`,
+        };
+        
+        cache.set(k, { data: fail, expiresAt: now + ttl });
+        return fail;
+      }
+
+      // 处理成功响应
+      const bot = response.bot || response.data?.bot;
+      const ok: FeishuProbeResult = {
+        ok: true,
+        appId: creds.appId,
+        botName: bot?.bot_name,
+        botOpenId: bot?.open_id,
+      };
+      
+      // 缓存成功结果 6 小时
+      cache.set(k, { data: ok, expiresAt: now + OK_TTL_MS });
+      return ok;
+      
+    } catch (err) {
+      // 处理异常
+      const fail: FeishuProbeResult = {
+        ok: false,
+        appId: creds.appId,
+        error: err instanceof Error ? err.message : String(err),
+      };
+      
+      // 缓存失败结果 10 分钟
+      cache.set(k, { data: fail, expiresAt: now + FAIL_TTL_MS });
+      return fail;
+      
+    } finally {
+      // 清理 in-flight 标记
+      inFlight.delete(k);
+    }
+  })();
+
+  // 记录 in-flight 请求
+  inFlight.set(k, p);
+  return await p;
+}
+
+/**
+ * 清除缓存（用于测试或调试）
+ */
+export function clearProbeCache(): void {
+  cache.clear();
+  inFlight.clear();
+  clientCache.clear();
+}
+
+/**
+ * 获取缓存统计（用于调试）
+ */
+export function getCacheStats(): {
+  cacheSize: number;
+  inFlightSize: number;
+  clientCacheSize: number;
+} {
+  return {
+    cacheSize: cache.size,
+    inFlightSize: inFlight.size,
+    clientCacheSize: clientCache.size,
+  };
+}
