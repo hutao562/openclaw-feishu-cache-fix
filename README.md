@@ -68,6 +68,9 @@ curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/
 
 # 恢复原始版本
 curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --restore
+
+# 卸载工具
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --uninstall
 ```
 
 **可用参数：**
@@ -76,6 +79,7 @@ curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/
 |------|------|
 | `--status` | 查看当前修复状态 |
 | `--restore` | 恢复原始版本 |
+| `--uninstall` | 卸载工具并清理安装文件 |
 | `--path <路径>` | 指定自定义插件路径 |
 | `--help` | 显示帮助信息 |
 

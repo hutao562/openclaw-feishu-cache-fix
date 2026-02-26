@@ -172,13 +172,15 @@ OpenClaw 飞书插件 API 缓存修复工具
     --version, -v       显示版本信息
     --restore           恢复原始版本（从备份恢复）
     --status            检查当前状态
+    --uninstall         卸载工具并清理安装文件
     --path PATH         指定自定义插件路径
     --dry-run           试运行（不实际修改文件）
 
 示例:
-    $0                  # 自动检测并修复
+    $0                  # 自动检测并修复（交互式菜单）
     $0 --restore        # 恢复原始版本
     $0 --status         # 查看当前状态
+    $0 --uninstall      # 卸载工具
     $0 --path /custom/path/to/feishu  # 指定自定义路径
 
 EOF
@@ -418,6 +420,59 @@ check_status() {
     echo ""
 }
 
+# 卸载工具
+uninstall_tool() {
+    print_header
+    echo ""
+    print_warning "即将卸载 OpenClaw 飞书缓存修复工具"
+    echo ""
+    
+    local install_dir="$HOME/.openclaw-feishu-cache-fix"
+    local bin_link="$HOME/.local/bin/fix-feishu-cache"
+    local removed=0
+    
+    # 1. 尝试恢复原始版本（如果已修复）
+    local plugin_path
+    if plugin_path=$(find_plugin_path "" 2>/dev/null); then
+        if [[ -f "$plugin_path/src/probe.ts" ]]; then
+            if check_if_already_patched "$plugin_path/src/probe.ts"; then
+                print_info "检测到已应用缓存修复，正在恢复原始版本..."
+                if restore_original "$plugin_path" 2>/dev/null; then
+                    print_success "已恢复原始版本"
+                else
+                    print_warning "恢复原始版本失败，请手动检查"
+                fi
+            fi
+        fi
+    fi
+    
+    # 2. 删除命令链接
+    if [[ -L "$bin_link" ]] || [[ -f "$bin_link" ]]; then
+        rm -f "$bin_link"
+        print_success "已删除命令链接: $bin_link"
+        removed=1
+    fi
+    
+    # 3. 删除安装目录
+    if [[ -d "$install_dir" ]]; then
+        rm -rf "$install_dir"
+        print_success "已删除安装目录: $install_dir"
+        removed=1
+    fi
+    
+    echo ""
+    if [[ $removed -eq 1 ]]; then
+        print_success "卸载完成！"
+        echo ""
+        echo "📋 残留检查:"
+        echo "  • 插件备份文件: 保留在插件目录（如需清理请手动删除）"
+        echo "  • PATH 环境变量: 如需清理请编辑 ~/.zshrc 或 ~/.bashrc"
+    else
+        print_info "未找到已安装的文件，无需卸载"
+    fi
+    echo ""
+}
+
 # 显示交互式菜单
 show_menu() {
     print_header
@@ -427,14 +482,15 @@ show_menu() {
     echo "  [1] 🔧 应用缓存修复"
     echo "  [2] 🔄 恢复原始版本"
     echo "  [3] 📊 查看当前状态"
-    echo "  [4] ❌ 退出"
+    echo "  [4] 🗑️  卸载工具"
+    echo "  [5] ❌ 退出"
     echo ""
 }
 
 # 读取用户选择
 read_choice() {
     local choice
-    read -p "请输入选项 (1-4): " choice
+    read -p "请输入选项 (1-5): " choice
     echo "$choice"
 }
 
@@ -461,6 +517,10 @@ main() {
                 ;;
             --status)
                 action="status"
+                shift
+                ;;
+                --uninstall)
+                action="uninstall"
                 shift
                 ;;
             --path)
@@ -495,7 +555,11 @@ main() {
             3)
                 action="status"
                 ;;
-            4|*)
+            4)
+                uninstall_tool
+                exit 0
+                ;;
+            5|*)
                 echo ""
                 echo "👋 再见!"
                 exit 0
@@ -509,6 +573,12 @@ main() {
     # 状态检查
     if [[ "$action" == "status" ]]; then
         check_status
+        exit 0
+    fi
+    
+    # 卸载模式
+    if [[ "$action" == "uninstall" ]]; then
+        uninstall_tool
         exit 0
     fi
     
