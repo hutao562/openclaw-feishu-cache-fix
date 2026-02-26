@@ -484,6 +484,25 @@ show_menu() {
 
 # 读取用户选择
 read_choice() {
+    # 检测是否在交互式终端运行
+    if [[ ! -t 0 ]]; then
+        echo ""
+        print_error "无法读取用户输入（通过管道运行）"
+        echo ""
+        echo "💡 请使用以下方式之一："
+        echo ""
+        echo "  1. 先下载脚本再运行："
+        echo "     curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh -o /tmp/fix.sh"
+        echo "     bash /tmp/fix.sh"
+        echo ""
+        echo "  2. 使用参数直接执行："
+        echo "     curl -fsSL ... | bash -s -- --status    # 查看状态"
+        echo "     curl -fsSL ... | bash -s -- --restore   # 恢复版本"
+        echo "     curl -fsSL ... | bash -s -- --uninstall # 卸载工具"
+        echo ""
+        exit 1
+    fi
+    
     local choice
     read -p "请输入选项 (1-5): " choice
     echo "$choice"

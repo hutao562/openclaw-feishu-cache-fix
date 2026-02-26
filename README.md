@@ -30,15 +30,18 @@ OpenClaw 的飞书通道默认每 60 秒执行一次健康检查，每次检查�
 
 ## 🔧 使用方法
 
-### 快速运行（推荐）
+### ⚠️ 重要提示
 
-无需安装，直接运行：
+**通过 `curl | bash` 管道运行时，无法显示交互式菜单。** 请使用以下两种方式之一：
+
+#### 方式 1：先下载再运行（推荐，支持交互菜单）
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh -o /tmp/fix-feishu-cache.sh
+bash /tmp/fix-feishu-cache.sh
 ```
 
-运行后会显示交互式菜单：
+运行后显示交互式菜单：
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -50,14 +53,27 @@ curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/
   [1] 🔧 应用缓存修复
   [2] 🔄 恢复原始版本
   [3] 📊 查看当前状态
-  [4] ❌ 退出
-
-请输入选项 (1-4):
+  [4] 🗑️  卸载工具
+  [5] ❌ 退出
 ```
 
-### 命令行参数（非交互模式）
+#### 方式 2：管道 + 参数（无需交互）
 
-如果需要脚本化调用，可以使用参数：
+```bash
+# 查看状态
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --status
+
+# 应用缓存修复（自动检测路径）
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --path /usr/lib/node_modules/openclaw/extensions/feishu
+
+# 恢复原始版本
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --restore
+
+# 卸载工具
+curl -fsSL https://raw.githubusercontent.com/hutao562/openclaw-feishu-cache-fix/main/fix-feishu-cache.sh | bash -s -- --uninstall
+```
+
+### 命令行参数说明
 
 ```bash
 # 查看状态
